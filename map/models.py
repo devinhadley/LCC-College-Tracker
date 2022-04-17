@@ -15,5 +15,4 @@ class Entry(models.Model):
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
     email = models.CharField(max_length=62)
-    is_anonymous = models.BooleanField()
     college = models.ForeignKey(College, on_delete=models.CASCADE, default=1, related_name="entry")

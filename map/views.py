@@ -8,12 +8,11 @@ from django.shortcuts import render
 from map.models import College, Entry
 
 from .config import MAPBOX_API_KEY
-
+from ratelimit.decorators import ratelimit
 
 def index(request) -> HttpResponse:
     colleges = College.objects.all()
 
-    # Don't include name if anonymous.
     serialized_objects = [{
         'name': college.name,
         'long': str(college.long),
@@ -30,6 +29,7 @@ def index(request) -> HttpResponse:
     return render(request, '../templates/index.html', context)
 
 
+@ratelimit(key='ip', rate='50/h')
 def process_entry(request):
     def is_ajax(req: request) -> bool:
         if request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest':
@@ -46,11 +46,18 @@ def process_entry(request):
         entry["lname"] = entry["lname"].replace(" ", "")
         entry["email"] = entry["email"].replace(" ", "")
 
+
+
+
+
         if not entry["fname"].isalpha():
             return JsonResponse("Number in Names", safe=False)
 
         if len(entry["email"]) <= 13:
             return JsonResponse("Invalid Email", safe=False)
+
+        if Entry.objects.filter(email=entry["email"]).exists():
+            return JsonResponse("Already Exists", safe=False)
 
         correct_email_prefix = entry["lname"].lower() + entry["fname"][0].lower()
 
@@ -86,9 +93,7 @@ def process_entry(request):
             new_college.save()
             college_object = new_college
 
-        is_anon = True if entry["anon"] == "true" else False
         new_entry = Entry(first_name=entry["fname"], last_name=entry["lname"], email=entry["email"],
-                          is_anonymous=is_anon,
                           college=college_object)
         new_entry.save()
 
