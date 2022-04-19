@@ -10,6 +10,8 @@ from map.models import College, Entry
 from .config import MAPBOX_API_KEY
 from ratelimit.decorators import ratelimit
 
+import os
+
 def index(request) -> HttpResponse:
     colleges = College.objects.all()
 
@@ -21,8 +23,13 @@ def index(request) -> HttpResponse:
         'entry': list(college.entry.all().values("first_name", "last_name"))
     } for college in colleges]
 
+    __location__ = os.path.realpath(
+        os.path.join(os.getcwd(), os.path.dirname(__file__)))
+
+    college_list_data = open(os.path.join(__location__, 'colleges/data.json'))
     context = {
-        "colleges": json.dumps(serialized_objects)
+        "colleges": json.dumps(serialized_objects),
+        "college_list": json.load(college_list_data)
     }
 
     print("context")
@@ -45,10 +52,6 @@ def process_entry(request):
         entry["fname"] = entry["fname"].replace(" ", "")
         entry["lname"] = entry["lname"].replace(" ", "")
         entry["email"] = entry["email"].replace(" ", "")
-
-
-
-
 
         if not entry["fname"].isalpha():
             return JsonResponse("Number in Names", safe=False)

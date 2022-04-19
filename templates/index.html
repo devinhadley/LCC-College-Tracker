@@ -119,6 +119,9 @@
                     <div class="form-group">
                         <label for="inputCollegeName">Select your College (No abbreviations)</label>
                         <select id="inputCollegeName" class="dropdown" data-live-search="true">
+                            {% for college in college_list %}
+                                <option>{{ college.name }}</option>
+                            {% endfor %}
                         </select>
                         <small class="form-text text-muted">If you don't see your college on here please DM @devinhadley
                             on instagram. That being said, students going out of country should message me.</small>
@@ -153,19 +156,6 @@
 </div>
 <script>
 
-
-    // Use same api to fetch college website from name on server.
-    // Add error case in case API goes down.
-    $.ajax({
-        url: "http://universities.hipolabs.com/search?country=United%20States",
-        dataType: 'json',
-        async: false,
-        success: function (data) {
-            $.each(data, function (i, p) {
-                $('#inputCollegeName').append($('<option></option>').val(p.name).html(p.name));
-            });
-        }
-    });
 
 
     // Allow dropdown to be searchable.
